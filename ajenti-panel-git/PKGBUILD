@@ -1,0 +1,44 @@
+# Contributor: vbPadre <vbpadre@gmail.com>
+
+pkgname=ajenti-panel-git
+pkgver=20110216
+pkgrel=1
+pkgdesc="An easy server administration frontend like webmin - updated"
+arch=('any')
+url="http://github.com/Eugeny/ajenti/"
+license=('GPL')
+depends=('python>=2.6' 'python-lxml' 'python2-pyopenssl' 'mysql-python' 'python-psycopg2')
+makedepends=('git')
+optdepends=()
+conflicts=('ajenti-git')
+provides=('ajenti')
+source=('ajenti.conf' 'initscript')
+md5sums=('92469a3d66f2cc7519ce20465a28411e' '37eff5e47d034dc72df905e3c96b3298')
+
+
+_gitroot=git://github.com/Eugeny/ajenti.git
+_gitname=ajenti
+
+build() {
+	cd ${srcdir}
+	msg "Connecting to GIT server...."
+
+	if [ -d "${srcdir}/${_gitname}" ] ; then
+		cd ${_gitname} && git pull --rebase
+	else
+		git clone ${_gitroot}
+	fi
+
+	cd ${_gitname}
+	git checkout -b newish origin/newplugins
+
+	msg "GIT checkout done or server timeout"
+	msg "Creating pkg..."
+
+	cp -f ${srcdir}/ajenti.conf ${srcdir}/ajenti/ajenti.conf
+	cp -f ${srcdir}/initscript ${srcdir}/ajenti/packaging/files/ajenti
+	mkdir -p ${pkgdir}/etc/rc.d
+	cp -r ${srcdir}/ajenti ${pkgdir}/etc/
+	cp  ${srcdir}/ajenti/packaging/files/ajenti ${pkgdir}/etc/rc.d/ajenti
+	chmod 0755 ${pkgdir}/etc/rc.d/ajenti
+}
